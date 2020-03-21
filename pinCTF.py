@@ -145,7 +145,7 @@ def readCount(fileName="inscount.out"):
     line = inscountFile.read()
     count = 0
     try:
-        count = int(line.split(' ')[1])
+        count = int(line.split(' ')[-1])
     except:
         print("[-] Expected number, got {}".format(line))
 
@@ -155,7 +155,7 @@ def readCount(fileName="inscount.out"):
 def sendPinArgCommand(pin,library,binary,arg):
     #The delay given by Popen causes inconsistencies in PIN
     #So use os.system instead
-    COMMAND = "{}/pin -t {}/inscount0.so -- {} {} > /dev/null".format(pin,library,binary,arg)
+    COMMAND = "{}/pin -t {}/inscount0.so -- '{}' '{}' > /dev/null".format(pin,library,binary,arg)
     os.system(COMMAND)
 
     count = readCount()
@@ -165,7 +165,7 @@ def sendPinInputCommand(pin,library,binary,input):
     
     #The delay given by Popen causes inconsistencies in PIN
     #So use os.system instead
-    ARGS = "{}/pin -t {}/inscount0.so -- {} ".format(pin,library,binary)
+    ARGS = "{}/pin -t {}/inscount0.so -- '{}' ".format(pin,library,binary)
 
     #Send the output to /dev/null since it will pollute the screen otherwise
     os.system("echo {} | {} > /dev/null".format(input,ARGS))
@@ -179,7 +179,7 @@ def sendPinArgCommandThread(pin,library,binary,arg,ident, inIMAP=False):
 
     if not os.path.exists("pin_{}".format(ident)):
         os.mkdir("pin_{}".format(ident))
-    COMMAND = "cd pin_{} > /dev/null; {}/pin -t {}/inscount0.so -- {} {} > /dev/null".format(ident,pin,library,binary,arg)
+    COMMAND = "cd pin_{} > /dev/null; {}/pin -t {}/inscount0.so -- '{}' '{}' > /dev/null".format(ident,pin,library,binary,arg)
     os.system(COMMAND)
 
     count = readCount("pin_{}/inscount.out".format(ident))
@@ -195,7 +195,7 @@ def sendPinInputCommandThread(pin,library,binary,input,ident, inIMAP=False):
     #So use os.system instead
     if not os.path.exists("pin_{}".format(ident)):
         os.mkdir("pin_{}".format(ident))
-    ARGS = "{}/pin -t {}/inscount0.so -- {} ".format(pin,library,binary)
+    ARGS = "{}/pin -t {}/inscount0.so -- '{}' ".format(pin,library,binary)
 
     #Send the output to /dev/null since it will pollute the screen otherwise
     COMMAND = "cd pin_{} > /dev/null; echo {} | {} > /dev/null".format(ident,input,ARGS)
@@ -460,6 +460,9 @@ def runThreadedCommand(pin,library,binary,path,item,i,arg=False):
         seedList[i] = item[0]
         path = ''.join(seedList)
 
+    
+    sys.stdout.write("[~] Trying {}\r".format(path))
+    sys.stdout.flush()
     if arg:
         count = sendPinArgCommandThread(pin,library,binary,path,item)
     else:
